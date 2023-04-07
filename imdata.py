@@ -6,7 +6,7 @@ class ImData:
   @staticmethod
   def read_imdata():
     ret = []
-    f = open("imdata.txt")
+    f = open("test/somesongs.txt")
     lines = f.readlines()
     for line in lines:
         track_info = {}
@@ -28,6 +28,7 @@ class ImData:
             continue
     return ret
 
+  @staticmethod
   def cut(obj, sec):
     return [obj[i : i + sec] for i in range(0, len(obj), sec)]
 
@@ -53,7 +54,7 @@ class ImData:
     if len(ids) < 1000:
       tracks = pyncm.apis.track.GetTrackDetail(ids)
     else:
-      ids_list = cut(ids,1000)
+      ids_list = ImData.cut(ids,1000)
       for tmp_ids in ids_list:
         tmp_tracks = pyncm.apis.track.GetTrackDetail(tmp_ids)
         tracks.append(tmp_tracks)

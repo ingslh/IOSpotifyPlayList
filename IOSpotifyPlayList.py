@@ -4,6 +4,8 @@ from imdata import ImData
 from urllib import request, parse
 import os
 import spotipy
+import argparse
+import datetime
 
 def search_for_track(sp, track_name, artist_name):
   search_ret = sp.search(track_name, 10)
@@ -37,20 +39,34 @@ def add_items_to_playlist(sp, playlist_uri, track_uris, position=None):
           position=position,
   )
 
+def get_args():
+  parser = argparse.ArgumentParser(description='Move NetEase PlayList into Spotify PlayList')
+  parser.add_argument('-u', '--PlaylistUrl', action='append', required=True, help='NetEase\'s playlist url')
+  parser.add_argument('-n', '--PlaylistName', required=True, default=datetime.date.today(), help='New playlist name')
+  return parser.parse_args()
+
 def main():
+  args = get_args()
+  
+  if os.getenv("SPOTIPY_CLIENT_ID") == None \
+    or os.getenv("SPOTIPY_CLIENT_SECRET") == None \
+    or os.getenv("SPOTIPY_REDIRECT_URI") == None :
+    if os.path.exists(".env"):
+      load_dotenv()
+    else:
+      print('Please Set or Update your SPOTIPY_CLIENT_ID into enviroment variables')
 
-  load_dotenv()
-
+  #load_dotenv()
   client_id = os.getenv("SPOTIPY_CLIENT_ID")
   client_secret = os.getenv("SPOTIPY_CLIENT_SECRET")
   redirect_uri = os.getenv("SPOTIPY_REDIRECT_URI")
 
   print(client_id, client_secret)
 
-  tracks_info = ImData.read_imdata()
-  sp = creat_sp()
-  playlist_name = "test1"
+  tracks_info = ImData.ReadNetEasePlayList(args.PlaylistUrl)
+  playlist_name = args.PlaylistName
 
+  sp = creat_sp()
   ser_id = sp.me()['id']
   playlist_id = create_a_playlist(sp, playlist_name)
 
@@ -62,7 +78,7 @@ def main():
       response = add_items_to_playlist(sp, playlist_id, track_uri)
       if "snapshot_id" in response:
         cnt += 1
-        print(f"Import to \"{playlist_id}\"({cnt} / {tracks_count}) : " + track["track_name"] + " - " + track["artist"])
+        print(f"Import to \"{playlist_name}\"({cnt} / {tracks_count}) : " + track["track_name"] + " - " + track["artist"])
 
 
 if __name__ == '__main__':
